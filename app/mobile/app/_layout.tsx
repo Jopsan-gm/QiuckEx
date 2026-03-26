@@ -7,7 +7,7 @@ import * as Linking from "expo-linking";
 import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import { useColorScheme } from "react-native";
+import { ThemeProvider as AppThemeProvider, useAppTheme } from "@/context/ThemeContext";
 // Ensure web build or Expo web uses the local backend during development
 if (typeof document !== "undefined" && !(global as any).API_BASE_URL) {
   // Expo web typically runs on localhost; ensure the app hits the backend on port 4000
@@ -64,7 +64,15 @@ function DevPoller() {
 }
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  return (
+    <AppThemeProvider>
+      <ThemedNavigationProvider />
+    </AppThemeProvider>
+  );
+}
+
+function ThemedNavigationProvider() {
+  const { colorScheme } = useAppTheme();
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
@@ -81,7 +89,7 @@ export default function RootLayout() {
           <ToastNotification />
         </NotificationProvider>
       </SecurityProvider>
-      <StatusBar style="auto" />
+      <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
     </ThemeProvider>
   );
 }
@@ -100,6 +108,8 @@ function AppShell() {
         <Stack.Screen name="scan-to-pay" />
         <Stack.Screen name="payment-confirmation" />
         <Stack.Screen name="transactions" />
+        <Stack.Screen name="settings" />
+        <Stack.Screen name="quick-receive" />
       </Stack>
       {isReady && settings.biometricLockEnabled ? (
         <AppLockOverlay visible={isAppLocked} onUnlock={unlockApp} />

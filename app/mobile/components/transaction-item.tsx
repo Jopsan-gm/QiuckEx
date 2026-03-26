@@ -7,6 +7,7 @@ import {
     Clipboard,
 } from 'react-native';
 import type { TransactionItem as TransactionItemType } from '../types/transaction';
+import { useAppTheme } from '@/context/ThemeContext';
 
 interface Props {
     item: TransactionItemType;
@@ -36,6 +37,8 @@ function shortenHash(hash: string): string {
 }
 
 export default function TransactionItem({ item }: Props) {
+    const { colors } = useAppTheme();
+    const s = makeStyles(colors);
     const assetLabel = formatAsset(item.asset);
 
     const handleCopyHash = () => {
@@ -43,100 +46,102 @@ export default function TransactionItem({ item }: Props) {
     };
 
     return (
-        <View style={styles.row}>
+        <View style={s.row}>
             {/* Left: icon + asset */}
-            <View style={styles.iconWrap}>
-                <Text style={styles.assetIcon}>{assetLabel.slice(0, 3)}</Text>
+            <View style={s.iconWrap}>
+                <Text style={s.assetIcon}>{assetLabel.slice(0, 3)}</Text>
             </View>
 
             {/* Middle: asset name, memo, date */}
-            <View style={styles.middle}>
-                <Text style={styles.assetName}>
+            <View style={s.middle}>
+                <Text style={s.assetName}>
                     {assetLabel}
                 </Text>
                 {item.memo ? (
-                    <Text style={styles.memo} numberOfLines={1}>
+                    <Text style={s.memo} numberOfLines={1}>
                         {item.memo}
                     </Text>
                 ) : null}
                 <TouchableOpacity onPress={handleCopyHash} activeOpacity={0.6}>
-                    <Text style={styles.txHash}>{shortenHash(item.txHash)}</Text>
+                    <Text style={s.txHash}>{shortenHash(item.txHash)}</Text>
                 </TouchableOpacity>
-                <Text style={styles.date}>{formatDate(item.timestamp)}</Text>
+                <Text style={s.date}>{formatDate(item.timestamp)}</Text>
             </View>
 
             {/* Right: amount */}
-            <View style={styles.right}>
-                <Text style={styles.amount} numberOfLines={1} adjustsFontSizeToFit>
+            <View style={s.right}>
+                <Text style={s.amount} numberOfLines={1} adjustsFontSizeToFit>
                     {parseFloat(item.amount).toFixed(2)}
                 </Text>
-                <Text style={styles.assetCode}>{assetLabel}</Text>
+                <Text style={s.assetCode}>{assetLabel}</Text>
             </View>
         </View>
     );
 }
 
-const styles = StyleSheet.create({
-    row: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 14,
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: '#E5E7EB',
-        backgroundColor: '#fff',
-    },
-    iconWrap: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: '#F3F4F6',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: 14,
-    },
-    assetIcon: {
-        fontSize: 13,
-        fontWeight: '700',
-        color: '#374151',
-        letterSpacing: -0.5,
-    },
-    middle: {
-        flex: 1,
-        gap: 2,
-    },
-    assetName: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#111827',
-    },
-    memo: {
-        fontSize: 13,
-        color: '#6B7280',
-    },
-    txHash: {
-        fontSize: 11,
-        color: '#9CA3AF',
-        fontFamily: 'monospace',
-    },
-    date: {
-        fontSize: 12,
-        color: '#9CA3AF',
-        marginTop: 1,
-    },
-    right: {
-        alignItems: 'flex-end',
-        marginLeft: 8,
-        maxWidth: 110,
-    },
-    amount: {
-        fontSize: 15,
-        fontWeight: '700',
-        color: '#111827',
-    },
-    assetCode: {
-        fontSize: 12,
-        color: '#6B7280',
-        marginTop: 2,
-    },
-});
+function makeStyles(colors: ReturnType<typeof useAppTheme>["colors"]) {
+    return StyleSheet.create({
+        row: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 20,
+            paddingVertical: 14,
+            borderBottomWidth: StyleSheet.hairlineWidth,
+            borderBottomColor: colors.border,
+            backgroundColor: colors.background,
+        },
+        iconWrap: {
+            width: 44,
+            height: 44,
+            borderRadius: 22,
+            backgroundColor: colors.surfaceAlt,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginRight: 14,
+        },
+        assetIcon: {
+            fontSize: 13,
+            fontWeight: '700',
+            color: colors.textSecondary,
+            letterSpacing: -0.5,
+        },
+        middle: {
+            flex: 1,
+            gap: 2,
+        },
+        assetName: {
+            fontSize: 15,
+            fontWeight: '600',
+            color: colors.text,
+        },
+        memo: {
+            fontSize: 13,
+            color: colors.textSecondary,
+        },
+        txHash: {
+            fontSize: 11,
+            color: colors.textMuted,
+            fontFamily: 'monospace',
+        },
+        date: {
+            fontSize: 12,
+            color: colors.textMuted,
+            marginTop: 1,
+        },
+        right: {
+            alignItems: 'flex-end',
+            marginLeft: 8,
+            maxWidth: 110,
+        },
+        amount: {
+            fontSize: 15,
+            fontWeight: '700',
+            color: colors.text,
+        },
+        assetCode: {
+            fontSize: 12,
+            color: colors.textSecondary,
+            marginTop: 2,
+        },
+    });
+}

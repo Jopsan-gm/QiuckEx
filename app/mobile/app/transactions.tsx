@@ -17,6 +17,7 @@ import { useTransactions } from '../hooks/use-transactions';
 import type { TransactionItem as TransactionItemType } from '../types/transaction';
 import { ErrorState } from '../components/resilience/error-state';
 import { EmptyState } from '../components/resilience/empty-state';
+import { useAppTheme } from '@/context/ThemeContext';
 
 /**
  * Placeholder account used when no accountId is passed via route params.
@@ -26,15 +27,15 @@ const DEMO_ACCOUNT_ID =
 
 // ─── Loading Skeleton ────────────────────────────────────────────────────────
 
-function SkeletonRow() {
+function SkeletonRow({ skeletonColor }: { skeletonColor: string }) {
     return (
-        <View style={skeleton.row}>
-            <View style={skeleton.circle} />
+        <View style={[skeleton.row]}>
+            <View style={[skeleton.circle, { backgroundColor: skeletonColor }]} />
             <View style={skeleton.lines}>
-                <View style={[skeleton.line, { width: '55%' }]} />
-                <View style={[skeleton.line, { width: '35%', marginTop: 6 }]} />
+                <View style={[skeleton.line, { width: '55%', backgroundColor: skeletonColor }]} />
+                <View style={[skeleton.line, { width: '35%', marginTop: 6, backgroundColor: skeletonColor }]} />
             </View>
-            <View style={[skeleton.line, { width: 60, alignSelf: 'center' }]} />
+            <View style={[skeleton.line, { width: 60, alignSelf: 'center', backgroundColor: skeletonColor }]} />
         </View>
     );
 }
@@ -46,20 +47,18 @@ const skeleton = StyleSheet.create({
         paddingHorizontal: 20,
         paddingVertical: 14,
         borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: '#E5E7EB',
+        borderBottomColor: 'transparent',
     },
     circle: {
         width: 44,
         height: 44,
         borderRadius: 22,
-        backgroundColor: '#E5E7EB',
         marginRight: 14,
     },
     lines: { flex: 1 },
     line: {
         height: 12,
         borderRadius: 6,
-        backgroundColor: '#E5E7EB',
     },
 });
 
@@ -67,6 +66,9 @@ const skeleton = StyleSheet.create({
 
 export default function TransactionsScreen() {
     const router = useRouter();
+    const { colors } = useAppTheme();
+    const s = makeStyles(colors);
+
     const params = useLocalSearchParams<{ accountId?: string }>();
     const accountId = (params.accountId ?? DEMO_ACCOUNT_ID).trim();
 
@@ -80,15 +82,15 @@ export default function TransactionsScreen() {
     );
 
     const ListHeader = (
-        <View style={styles.listHeader}>
-            <Text style={styles.accountPill}>{shortAccount}</Text>
+        <View style={s.listHeader}>
+            <Text style={s.accountPill}>{shortAccount}</Text>
         </View>
     );
 
     const ListEmpty = loading ? (
         <View>
             {[...Array(6)].map((_, i) => (
-                <SkeletonRow key={i} />
+                <SkeletonRow key={i} skeletonColor={colors.skeleton} />
             ))}
         </View>
     ) : error ? (
@@ -105,24 +107,24 @@ export default function TransactionsScreen() {
     );
 
     const ListFooter = hasMore ? (
-        <View style={styles.footer}>
-            <ActivityIndicator size="small" color="#6B7280" />
+        <View style={s.footer}>
+            <ActivityIndicator size="small" color={colors.textSecondary} />
         </View>
     ) : null;
 
     return (
-        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+        <SafeAreaView style={s.container} edges={['top', 'bottom']}>
             {/* ── Header ── */}
-            <View style={styles.header}>
+            <View style={s.header}>
                 <TouchableOpacity
                     onPress={() => router.back()}
-                    style={styles.backBtn}
+                    style={s.backBtn}
                     hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 >
-                    <Text style={styles.backChevron}>‹</Text>
+                    <Text style={s.backChevron}>‹</Text>
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Transaction History</Text>
-                <View style={styles.backBtn} />
+                <Text style={s.headerTitle}>Transaction History</Text>
+                <View style={s.backBtn} />
             </View>
 
             {/* ── Transaction List ── */}
@@ -137,14 +139,14 @@ export default function TransactionsScreen() {
                     <RefreshControl
                         refreshing={refreshing}
                         onRefresh={refresh}
-                        tintColor="#6B7280"
+                        tintColor={colors.textSecondary}
                     />
                 }
                 onEndReached={loadMore}
                 onEndReachedThreshold={0.8}
                 contentContainerStyle={
                     (transactions.length === 0 || error) && !loading
-                        ? styles.emptyFill
+                        ? s.emptyFill
                         : undefined
                 }
                 showsVerticalScrollIndicator={false}
@@ -155,118 +157,67 @@ export default function TransactionsScreen() {
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F9FAFB',
-    },
+function makeStyles(colors: ReturnType<typeof useAppTheme>["colors"]) {
+    return StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: colors.background,
+        },
 
-    // Header
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        backgroundColor: '#fff',
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: '#E5E7EB',
-    },
-    headerTitle: {
-        fontSize: 17,
-        fontWeight: '600',
-        color: '#111827',
-    },
-    backBtn: {
-        width: 36,
-        alignItems: 'center',
-    },
-    backChevron: {
-        fontSize: 28,
-        color: '#111827',
-        lineHeight: 32,
-    },
+        // Header
+        header: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 16,
+            paddingVertical: 12,
+            backgroundColor: colors.surface,
+            borderBottomWidth: StyleSheet.hairlineWidth,
+            borderBottomColor: colors.border,
+        },
+        headerTitle: {
+            fontSize: 17,
+            fontWeight: '600',
+            color: colors.text,
+        },
+        backBtn: {
+            width: 36,
+            alignItems: 'center',
+        },
+        backChevron: {
+            fontSize: 28,
+            color: colors.text,
+            lineHeight: 32,
+        },
 
-    // Error banner
-    errorBanner: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#FEF2F2',
-        borderBottomWidth: 1,
-        borderBottomColor: '#FECACA',
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        gap: 12,
-    },
-    errorText: {
-        flex: 1,
-        fontSize: 13,
-        color: '#991B1B',
-        lineHeight: 18,
-    },
-    retryBtn: {
-        backgroundColor: '#DC2626',
-        borderRadius: 6,
-        paddingHorizontal: 14,
-        paddingVertical: 6,
-    },
-    retryText: {
-        color: '#fff',
-        fontSize: 13,
-        fontWeight: '600',
-    },
+        // List header
+        listHeader: {
+            paddingHorizontal: 20,
+            paddingTop: 16,
+            paddingBottom: 8,
+        },
+        accountPill: {
+            alignSelf: 'flex-start',
+            backgroundColor: colors.pillBg,
+            color: colors.pillText,
+            fontSize: 12,
+            fontWeight: '600',
+            paddingHorizontal: 10,
+            paddingVertical: 4,
+            borderRadius: 99,
+            overflow: 'hidden',
+            fontFamily: 'monospace',
+        },
 
-    // List header
-    listHeader: {
-        paddingHorizontal: 20,
-        paddingTop: 16,
-        paddingBottom: 8,
-    },
-    accountPill: {
-        alignSelf: 'flex-start',
-        backgroundColor: '#E5E7EB',
-        color: '#374151',
-        fontSize: 12,
-        fontWeight: '600',
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 99,
-        overflow: 'hidden',
-        fontFamily: 'monospace',
-    },
+        // Empty state
+        emptyFill: {
+            flexGrow: 1,
+        },
 
-    // Empty state
-    emptyFill: {
-        flexGrow: 1,
-    },
-    emptyContainer: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 40,
-        paddingTop: 80,
-    },
-    emptyIcon: {
-        fontSize: 48,
-        marginBottom: 16,
-    },
-    emptyTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: '#111827',
-        marginBottom: 8,
-        textAlign: 'center',
-    },
-    emptySubtitle: {
-        fontSize: 14,
-        color: '#6B7280',
-        textAlign: 'center',
-        lineHeight: 20,
-    },
-
-    // Footer (load-more indicator)
-    footer: {
-        paddingVertical: 20,
-        alignItems: 'center',
-    },
-});
+        // Footer (load-more indicator)
+        footer: {
+            paddingVertical: 20,
+            alignItems: 'center',
+        },
+    });
+}
